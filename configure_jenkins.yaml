@@ -1,0 +1,60 @@
+- hosts: app_Jenkins 
+  tasks:
+  - name: Configuring the yum repo for jenkins 
+    yum_repository:
+      name: jenkins
+      baseurl: http://pkg.jenkins.io/redhat-stable
+      description: jenkins repo 
+      gpgcheck: true 
+      gpgkey: http://pkg.jenkins.io/redhat/jenkins.io.key
+      
+  - name: install java 
+    yum:
+      name: java
+      state: present 
+
+  - name: Install jdk and jenkins 
+    yum:
+      name:
+      - jenkins 
+      state: present 
+
+
+  - name: Start the jenkins service
+    service:
+      name: jenkins
+      state: started 
+      enabled: true 
+  
+  - name: readiness check for jenkins 
+    uri:
+      url: "http://{{ inventory_hostname }}:8080/login"
+      return_content: true 
+      status_code: 200 
+    register: jenkins_ready
+
+  - name: print the jenkin readiness status 
+    debug:
+      var: jenkins_ready.status
+
+  - block: 
+    
+    - name: return the password from the jenkins initial Password file 
+      fetch:
+        dest: password.txt 
+        src: /var/lib/jenkins/secrets/initialAdminPassword 
+        flat: true 
+    
+    - name: login url 
+      debug:
+        msg: "Login url is: http://{{ inventory_hostname }}:8080/login and Initial Password file location: is tasks/password.txt"
+
+    rescue:
+    - name: file not found 
+      debug: 
+        msg: "This might be your second login so no initial Password is present"
+
+
+
+
+      

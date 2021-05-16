@@ -1,0 +1,16 @@
+plugin: aws_ec2
+
+# aws profile to use
+aws_profile: default
+
+
+# aws region
+regions:
+- ap-south-1
+
+# grouping based on the app tag 
+keyed_groups:
+- key: tags['app']
+  prefix: app
+
+
